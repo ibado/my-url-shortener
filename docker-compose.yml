@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  postgres:
+    container_name: urls-db
+    image: postgres
+    environment:
+      POSTGRES_USER: me
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: urls
+      POSTGRES_PORT: 5432
+    ports:
+      - "5432:5432"
+    restart: unless-stopped

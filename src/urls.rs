@@ -1,35 +1,51 @@
-use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use sqlx::postgres::PgPoolOptions;
+use sqlx::PgPool;
+use std::fmt::format;
 
 #[derive(Clone, Debug)]
 pub struct UrlRepo {
-    db: Arc<RwLock<HashMap<String, String>>>,
+    db_pool: PgPool,
 }
 
 impl UrlRepo {
-    pub fn new() -> UrlRepo {
-        let mut hm = HashMap::new();
-        hm.insert("asd123".to_string(), "https://github.com/ibado".to_string());
-        UrlRepo {
-            db: Arc::new(RwLock::new(hm)),
+    pub async fn new() -> UrlRepo {
+        let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL env var is missing!");
+        let pool = PgPoolOptions::new()
+            .max_connections(5)
+            .connect(&db_url)
+            .await
+            .unwrap();
+        sqlx::migrate!().run(&pool).await;
+        UrlRepo { db_pool: pool }
+    }
+
+    pub async fn find(&self, key: &str) -> Option<String> {
+        match sqlx::query!("SELECT * FROM urls WHERE id = $1", key)
+            .fetch_one(&self.db_pool)
+            .await
+        {
+            Ok(record) => {
+                println!("Saved URL: {}", record.url);
+                Some(format!("{:?}", record.url))
+            }
+            Err(e) => {
+                println!("{}", e);
+                None
+            }
         }
     }
 
-    pub fn find(&self, key: &str) -> Option<String> {
-        println!("db: {:?}", self.db);
-        self.db
-            .read()
-            .expect("ups reading")
-            .get(key)
-            .map(|s| s.clone())
-    }
-
-    pub fn put(&self, key: &str, value: &str) {
-        println!("db before: {:?}", self.db);
-        self.db
-            .write()
-            .expect("ups writing")
-            .insert(key.to_string(), value.to_string());
-        println!("db after: {:?}", self.db);
+    pub async fn put(&self, url: &str) -> Option<String> {
+        let id = "asd124";
+        match sqlx::query!("INSERT INTO urls (id, url) VALUES ($1, $2);", id, url)
+            .execute(&self.db_pool)
+            .await
+        {
+            Ok(r) => Some(id.to_string()),
+            Err(e) => {
+                println!("Error: {:?}", e);
+                None
+            }
+        }
     }
 }

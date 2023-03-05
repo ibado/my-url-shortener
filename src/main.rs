@@ -16,32 +16,29 @@ struct ShortUrlResponse {
 }
 
 #[post("/")]
-async fn shorten_url(db: Data<UrlRepo>, body: Json<ShortenUrlBody>) -> impl Responder {
-    let id = create_id();
-    db.put(&id, &body.url);
-    HttpResponse::Created().json(ShortUrlResponse { short_url: id })
-}
-
-#[get("/{id}")]
-async fn resolve_url(db: Data<UrlRepo>, path: Path<String>) -> impl Responder {
-    let id = path.into_inner();
-    match db.find(&id) {
-        None => HttpResponse::NotFound().body("URL not found!"),
-        Some(url) => HttpResponse::PermanentRedirect()
-            .insert_header(("Location", url))
-            .finish(),
+async fn shorten_url(repo: Data<UrlRepo>, body: Json<ShortenUrlBody>) -> impl Responder {
+    match repo.put(&body.url).await {
+        None => HttpResponse::InternalServerError().finish(),
+        Some(id) => HttpResponse::Created().json(ShortUrlResponse { short_url: id }),
     }
 }
 
-fn create_id() -> String {
-    "asd124".to_string()
+#[get("/{id}")]
+async fn resolve_url(repo: Data<UrlRepo>, path: Path<String>) -> impl Responder {
+    let id = path.into_inner();
+    match repo.find(&id).await {
+        None => HttpResponse::NotFound().body("URL not found!"),
+        Some(url) => HttpResponse::MovedPermanently()
+            .insert_header(("Location", url))
+            .finish(),
+    }
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     enable_debug_logs();
     let port = 7777;
-    let repo: UrlRepo = UrlRepo::new();
+    let repo: UrlRepo = UrlRepo::new().await;
     println!("Running server on port {port}...");
     HttpServer::new(move || {
         App::new()
