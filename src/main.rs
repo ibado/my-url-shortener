@@ -40,7 +40,7 @@ async fn main() -> std::io::Result<()> {
     let port: u16 = std::env::var("PORT")
         .map(|p| p.parse().expect("Invalid port!"))
         .unwrap_or(7777);
-    let repo: UrlRepo = UrlRepo::new().await;
+    let repo: UrlRepo = UrlRepo::new().await.expect("Error creating UrlRepo!");
     println!("Running server on port {port}...");
     HttpServer::new(move || {
         App::new()

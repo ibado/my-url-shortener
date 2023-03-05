@@ -7,15 +7,15 @@ pub struct UrlRepo {
 }
 
 impl UrlRepo {
-    pub async fn new() -> UrlRepo {
+    pub async fn new() -> Option<UrlRepo> {
         let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL env var is missing!");
         let pool = PgPoolOptions::new()
             .max_connections(5)
             .connect(&db_url)
             .await
-            .unwrap();
-        sqlx::migrate!().run(&pool).await;
-        UrlRepo { db_pool: pool }
+            .ok()?;
+        sqlx::migrate!().run(&pool).await.ok()?;
+        Some(UrlRepo { db_pool: pool })
     }
 
     pub async fn find(&self, key: &str) -> Option<String> {
