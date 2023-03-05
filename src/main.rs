@@ -37,7 +37,9 @@ async fn resolve_url(repo: Data<UrlRepo>, path: Path<String>) -> impl Responder 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     enable_debug_logs();
-    let port = 7777;
+    let port: u16 = std::env::var("PORT")
+        .map(|p| p.parse().expect("Invalid port!"))
+        .unwrap_or(7777);
     let repo: UrlRepo = UrlRepo::new().await;
     println!("Running server on port {port}...");
     HttpServer::new(move || {

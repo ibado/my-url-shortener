@@ -1,6 +1,5 @@
 use sqlx::postgres::PgPoolOptions;
 use sqlx::PgPool;
-use std::fmt::format;
 
 #[derive(Clone, Debug)]
 pub struct UrlRepo {
@@ -41,7 +40,7 @@ impl UrlRepo {
             .execute(&self.db_pool)
             .await
         {
-            Ok(r) => Some(id.to_string()),
+            Ok(_) => Some(id.to_string()),
             Err(e) => {
                 println!("Error: {:?}", e);
                 None
