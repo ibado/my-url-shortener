@@ -1,7 +1,9 @@
+use actix_web::http::header;
 use actix_web::web::{Data, Json, Path};
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
 use serde::{Deserialize, Serialize};
 
+mod ids;
 mod urls;
 use crate::urls::UrlRepo;
 
@@ -19,17 +21,19 @@ struct ShortUrlResponse {
 async fn shorten_url(repo: Data<UrlRepo>, body: Json<ShortenUrlBody>) -> impl Responder {
     match repo.put(&body.url).await {
         None => HttpResponse::InternalServerError().finish(),
-        Some(id) => HttpResponse::Created().json(ShortUrlResponse { short_url: id }),
+        Some(id) => HttpResponse::Created().json(ShortUrlResponse {
+            short_url: ids::encode_id(id),
+        }),
     }
 }
 
 #[get("/{id}")]
 async fn resolve_url(repo: Data<UrlRepo>, path: Path<String>) -> impl Responder {
     let id = path.into_inner();
-    match repo.find(&id).await {
+    match repo.find(ids::decode_id(&id)).await {
         None => HttpResponse::NotFound().body("URL not found!"),
-        Some(url) => HttpResponse::MovedPermanently()
-            .insert_header(("Location", url))
+        Some(url) => HttpResponse::SeeOther()
+            .insert_header((header::LOCATION, url))
             .finish(),
     }
 }

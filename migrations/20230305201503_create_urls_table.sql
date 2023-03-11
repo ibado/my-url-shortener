@@ -1,6 +1,5 @@
 -- create urls table
 CREATE TABLE urls(
-    id TEXT NOT NULL,
-    PRIMARY KEY (id),
+    id SERIAL PRIMARY KEY,
     url TEXT NOT NULL
 );

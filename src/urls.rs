@@ -18,8 +18,8 @@ impl UrlRepo {
         Some(UrlRepo { db_pool: pool })
     }
 
-    pub async fn find(&self, key: &str) -> Option<String> {
-        match sqlx::query!("SELECT * FROM urls WHERE id = $1", key)
+    pub async fn find(&self, key: u32) -> Option<String> {
+        match sqlx::query!("SELECT * FROM urls WHERE id = $1", key as i32)
             .fetch_one(&self.db_pool)
             .await
         {
@@ -34,13 +34,12 @@ impl UrlRepo {
         }
     }
 
-    pub async fn put(&self, url: &str) -> Option<String> {
-        let id = "asd124";
-        match sqlx::query!("INSERT INTO urls (id, url) VALUES ($1, $2);", id, url)
-            .execute(&self.db_pool)
+    pub async fn put(&self, url: &str) -> Option<u32> {
+        match sqlx::query!("INSERT INTO urls (url) VALUES ($1) RETURNING id;", url)
+            .fetch_one(&self.db_pool)
             .await
         {
-            Ok(_) => Some(id.to_string()),
+            Ok(result) => Some(result.id as u32),
             Err(e) => {
                 println!("Error: {:?}", e);
                 None
