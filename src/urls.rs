@@ -25,7 +25,7 @@ impl UrlRepo {
         {
             Ok(record) => {
                 println!("Saved URL: {}", record.url);
-                Some(format!("{:?}", record.url))
+                Some(record.url)
             }
             Err(e) => {
                 println!("{}", e);
