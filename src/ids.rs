@@ -1,16 +1,18 @@
-const NUMBERS: &[char] = &['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+const NUMBERS: &[char] = &['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 const LETTERS: &[char] = &['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
-const PADDING: u32 = 6666;
+const PADDING: u32 = 61470;
 
 pub fn encode_id(i: u32) -> String {
-    let i = i * PADDING;
+    let i = i + PADDING;
     let mut result = String::new();
     let mut k = i;
+    let mut coin = false;
     while k > 0 {
         let digit = k % 10;
-        let chars = if digit % 2 == 0 { &NUMBERS } else { &LETTERS };
+        let chars = if coin { &NUMBERS } else { &LETTERS };
         result.push(chars[digit as usize]);
         k /= 10;
+        coin = !coin;
     }
     result
 }
@@ -20,7 +22,6 @@ pub fn decode_id(encoded_id: &str) -> u32 {
     let mut result = initial;
     let mut n = 0;
     for c in encoded_id.chars() {
-        println!("char: {}", c);
         let d = NUMBERS
             .iter()
             .position(|num| *num == c)
@@ -29,7 +30,7 @@ pub fn decode_id(encoded_id: &str) -> u32 {
         result += d * 10_usize.pow(n);
         n += 1;
     }
-    ((result - initial) / (PADDING as usize)) as u32
+    ((result - initial) - (PADDING as usize)) as u32
 }
 
 #[cfg(test)]
@@ -38,12 +39,12 @@ mod test {
 
     #[test]
     fn generate_different_values() {
-        let id1 = 12345;
-        let id2 = 12346;
-        let id3 = 12349;
-        assert_ne!(id1, id2);
-        assert_ne!(id2, id3);
-        assert_ne!(id3, id1);
+        let seed = 1234;
+        let mut ids = std::collections::HashSet::new();
+        for i in 0..100_000 {
+            ids.insert(encode_id(seed + i));
+        }
+        assert_eq!(100_000, ids.len());
     }
 
     #[test]
