@@ -17,7 +17,7 @@ pub fn encode_id(i: u32) -> String {
     result
 }
 
-pub fn decode_id(encoded_id: &str) -> u32 {
+pub fn decode_id(encoded_id: &str) -> Option<u32> {
     let initial = 10_usize.pow((encoded_id.len() - 1) as u32);
     let mut result = initial;
     let mut n = 0;
@@ -25,12 +25,11 @@ pub fn decode_id(encoded_id: &str) -> u32 {
         let d = NUMBERS
             .iter()
             .position(|num| *num == c)
-            .or_else(|| LETTERS.iter().position(|letter| *letter == c))
-            .unwrap();
+            .or_else(|| LETTERS.iter().position(|letter| *letter == c))?;
         result += d * 10_usize.pow(n);
         n += 1;
     }
-    ((result - initial) - (PADDING as usize)) as u32
+    Some(((result - initial) - (PADDING as usize)) as u32)
 }
 
 #[cfg(test)]

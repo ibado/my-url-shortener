@@ -29,13 +29,17 @@ async fn shorten_url(repo: Data<UrlRepo>, body: Json<ShortenUrlBody>) -> impl Re
 
 #[get("/{id}")]
 async fn resolve_url(repo: Data<UrlRepo>, path: Path<String>) -> impl Responder {
-    let id = path.into_inner();
-    match repo.find(ids::decode_id(&id)).await {
+    match find_url(repo.get_ref(), &path.into_inner()).await {
         None => HttpResponse::NotFound().body("URL not found!"),
         Some(url) => HttpResponse::SeeOther()
             .insert_header((header::LOCATION, url))
             .finish(),
     }
+}
+
+async fn find_url(repo: &UrlRepo, path: &str) -> Option<String> {
+    let id = ids::decode_id(path)?;
+    repo.find(id).await
 }
 
 #[actix_web::main]
