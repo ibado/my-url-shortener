@@ -1,0 +1,21 @@
+FROM rust:latest as builder
+
+WORKDIR /usr/src/my-url-shortener
+COPY src src
+COPY Cargo.lock Cargo.lock
+COPY Cargo.toml Cargo.toml
+COPY migrations migrations
+COPY sqlx-data.json sqlx-data.json
+
+ENV SQLX_OFFLINE true
+
+RUN rustup override set nightly
+RUN cargo test
+RUN cargo build --release
+
+FROM gcr.io/distroless/cc-debian10
+
+COPY --from=builder /usr/src/my-url-shortener/target/release/my-url-shortener /usr/local/bin/my-url-shortener
+
+WORKDIR /usr/local/bin
+CMD ["my-url-shortener"]
