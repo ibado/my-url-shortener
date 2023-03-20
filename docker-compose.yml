@@ -1,5 +1,18 @@
 version: "3.8"
 services:
+  server:
+    container_name: url-shortener
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: "postgresql://me:password@postgres:5432/urls"
+    ports:
+      - "7777:7777"
+    networks:
+      - postgres
+    depends_on:
+      - postgres
   postgres:
     container_name: urls-db
     image: postgres
@@ -8,6 +21,17 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: urls
       POSTGRES_PORT: 5432
+    volumes:
+      - postgres:/data/postgres
     ports:
       - "5432:5432"
+    networks:
+      - postgres
     restart: unless-stopped
+
+networks:
+  postgres:
+    driver: bridge
+
+volumes:
+  postgres:

@@ -1,0 +1,49 @@
+{
+  "db": "PostgreSQL",
+  "a24a5af765118a8bbd363abdf3359b7b3ebca7ff433d6821a56b0d3aa4493de9": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      }
+    },
+    "query": "INSERT INTO urls (url) VALUES ($1) RETURNING id;"
+  },
+  "dd8cd00d8f68fd41f6d88e4a737c1107e1fa56c565bfcb45f0947e2fd0091832": {
+    "describe": {
+      "columns": [
+        {
+          "name": "id",
+          "ordinal": 0,
+          "type_info": "Int4"
+        },
+        {
+          "name": "url",
+          "ordinal": 1,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false
+      ],
+      "parameters": {
+        "Left": [
+          "Int4"
+        ]
+      }
+    },
+    "query": "SELECT * FROM urls WHERE id = $1"
+  }
+}
