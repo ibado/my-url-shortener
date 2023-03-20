@@ -22,7 +22,7 @@ services:
       POSTGRES_DB: urls
       POSTGRES_PORT: 5432
     volumes:
-      - postgres:/data/postgres
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
@@ -34,4 +34,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres:
+  postgres-data:
