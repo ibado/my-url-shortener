@@ -50,6 +50,6 @@ mod test {
     fn round_trip_success() {
         let id = 34558;
         let e = encode_id(id);
-        assert_eq!(id, decode_id(&e));
+        assert_eq!(id, decode_id(&e).unwrap());
     }
 }

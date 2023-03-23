@@ -1,0 +1,21 @@
+stages:
+- run test
+- build & push
+
+run_test:
+  stage: run test
+  image: rust:latest
+  script:
+    - cargo test
+
+build_image:
+  stage: build & push
+  image: docker:latest
+  services:
+    - docker:dind
+  #before_script:
+    #- docker login -u $DOCKER_USER -p $DOCKER_PASS $DOCKER_REGISTRY
+  script:
+    - docker build -t my-url-shortener .
+    #- docker tag my-feature-toggles $DOCKER_REGISTRY/my-url-shortener
+    #- docker push $DOCKER_REGISTRY/my-feature-toggles/web
