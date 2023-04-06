@@ -1,21 +1,22 @@
+variables:
+  DOCKER_HOST: tcp://docker:2375
+
 stages:
-- run test
 - build & push
 
-run_test:
-  stage: run test
-  image: rust:latest
-  script:
-    - cargo test
-
-build_image:
+build_and_push:
   stage: build & push
-  image: docker:latest
+  image:
+    name: amazon/aws-cli
+    entrypoint: [""]
   services:
     - docker:dind
-  #before_script:
-    #- docker login -u $DOCKER_USER -p $DOCKER_PASS $DOCKER_REGISTRY
+  before_script:
+    - amazon-linux-extras install docker
+    - aws --version
+    - docker --version
+    - aws ecr get-login-password | docker login --username AWS --password-stdin $DOCKER_REGISTRY
   script:
     - docker build -t my-url-shortener .
-    #- docker tag my-feature-toggles $DOCKER_REGISTRY/my-url-shortener
-    #- docker push $DOCKER_REGISTRY/my-feature-toggles/web
+    - docker tag my-url-shortener:latest $DOCKER_REGISTRY/my-url-shortener:latest
+    - docker push $DOCKER_REGISTRY/my-url-shortener:latest
