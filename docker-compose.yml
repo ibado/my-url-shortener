@@ -15,7 +15,7 @@ services:
       - postgres
   postgres:
     container_name: urls-db
-    image: postgres
+    image: postgres:14.7
     environment:
       POSTGRES_USER: me
       POSTGRES_PASSWORD: password
