@@ -28,6 +28,6 @@ deploy:
     - chmod 400 $SSH_KEY
   script:
     - ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER@$VM_IP "
-      docker ps -aq | xargs docker stop | xargs docker rm &&
+      docker ps -aq | xargs -r docker stop | xargs -r docker rm &&
       docker run -p 80:5000 $DOCKER_REGISTRY/my-url-shortener:latest
       "
