@@ -2,11 +2,11 @@ variables:
   DOCKER_HOST: tcp://docker:2375
 
 stages:
-- build & push
+- build, test & push
 - deploy
 
 build_and_push:
-  stage: build & push
+  stage: build, test & push
   image:
     name: amazon/aws-cli
     entrypoint: [""]
@@ -22,6 +22,12 @@ build_and_push:
     - docker tag my-url-shortener:latest $DOCKER_REGISTRY/my-url-shortener:latest
     - docker push $DOCKER_REGISTRY/my-url-shortener:latest
 
+test:
+  stage: build, test & push
+  image: rust:latest
+  script:
+    - cargo test
+
 deploy:
   stage: deploy
   before_script:
@@ -29,5 +35,5 @@ deploy:
   script:
     - ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER@$VM_IP "
       docker ps -aq | xargs -r docker stop | xargs -r docker rm &&
-      docker run -p 80:5000 -e DATABASE_URL=$DATABASE_URL -e RUSTFLAGS='--cfg sqlx_macros_unstable' $DOCKER_REGISTRY/my-url-shortener:latest
+      docker run -d -p 80:7777 -e DATABASE_URL=$DATABASE_URL -e RUSTFLAGS='--cfg sqlx_macros_unstable' $DOCKER_REGISTRY/my-url-shortener:latest
       "
