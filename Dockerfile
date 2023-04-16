@@ -15,6 +15,7 @@ RUN cargo build --release
 FROM gcr.io/distroless/cc-debian10
 
 COPY --from=builder /usr/src/my-url-shortener/target/release/my-url-shortener /usr/local/bin/my-url-shortener
+COPY static /usr/local/bin/static
 
 WORKDIR /usr/local/bin
 CMD ["my-url-shortener"]

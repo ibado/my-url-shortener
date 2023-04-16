@@ -1,3 +1,6 @@
+use std::path::PathBuf;
+use actix_cors::Cors;
+use actix_files::{Files, NamedFile};
 use actix_web::http::header;
 use actix_web::web::{Data, Json, Path};
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
@@ -17,7 +20,7 @@ struct ShortUrlResponse {
     short_url: String,
 }
 
-#[post("/")]
+#[post("/url")]
 async fn shorten_url(repo: Data<UrlRepo>, body: Json<ShortenUrlBody>) -> impl Responder {
     match repo.put(&body.url).await {
         None => HttpResponse::InternalServerError().finish(),
@@ -37,6 +40,12 @@ async fn resolve_url(repo: Data<UrlRepo>, path: Path<String>) -> impl Responder 
     }
 }
 
+#[get("/")]
+async fn index() -> impl Responder {
+    let path: PathBuf = "./static/index.html".parse().unwrap();
+    NamedFile::open(path)
+}
+
 async fn find_url(repo: &UrlRepo, path: &str) -> Option<String> {
     let id = ids::decode_id(path)?;
     repo.find(id).await
@@ -52,8 +61,11 @@ async fn main() -> std::io::Result<()> {
     println!("Running server on port {port}...");
     HttpServer::new(move || {
         App::new()
+            .wrap(Cors::permissive())
+            .service(Files::new("/static", "./static"))
             .service(resolve_url)
             .service(shorten_url)
+            .service(index)
             .app_data(Data::new(repo.clone()))
     })
     .bind(("0.0.0.0", port))?
