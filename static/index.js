@@ -1,4 +1,11 @@
 const form = document.getElementById("shorten-url");
+const dialog = document.getElementById("short-link-dialog");
+const content = dialog.getElementsByClassName("content")[0];
+const btnCopy = dialog.getElementsByClassName("btn-copy")[0];
+
+btnCopy.addEventListener("click", () => {
+    navigator.clipboard.writeText(content.innerHTML).then(() => alert("Copied to clipboard!"))
+})
 if (form) {
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -18,10 +25,10 @@ if (form) {
             const jsonResponse = await rawResponse.json()
             console.log(jsonResponse);
 
-            alert(`your short url is: ${document.documentURI}${jsonResponse.short_url}`)
+            content.innerHTML = `${document.documentURI}${jsonResponse.short_url}`
+            dialog.showModal()
         } catch (e) {
             console.error(e);
-            alert("Something went wrong :')")
         }
     })
 }
