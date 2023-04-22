@@ -35,5 +35,6 @@ deploy:
   script:
     - ssh -o StrictHostKeyChecking=no -i $SSH_KEY $USER@$VM_IP "
       docker ps -aq | xargs -r docker stop | xargs -r docker rm &&
+      docker image ls -q | xargs -r docker image rm &&
       docker run -d -p 80:7777 -e DATABASE_URL=$DATABASE_URL -e RUSTFLAGS='--cfg sqlx_macros_unstable' $DOCKER_REGISTRY/my-url-shortener:latest
       "
