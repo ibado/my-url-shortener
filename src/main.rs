@@ -1,10 +1,11 @@
-use std::path::PathBuf;
 use actix_cors::Cors;
 use actix_files::{Files, NamedFile};
 use actix_web::http::header;
 use actix_web::web::{Data, Json, Path};
 use actix_web::{get, post, App, HttpResponse, HttpServer, Responder};
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
+use url::Url;
 
 mod ids;
 mod urls;
@@ -22,7 +23,11 @@ struct ShortUrlResponse {
 
 #[post("/url")]
 async fn shorten_url(repo: Data<UrlRepo>, body: Json<ShortenUrlBody>) -> impl Responder {
-    match repo.put(&body.url).await {
+    let url = &body.url;
+    if Url::parse(url).is_err() {
+        return HttpResponse::BadRequest().finish();
+    }
+    match repo.put(url).await {
         None => HttpResponse::InternalServerError().finish(),
         Some(id) => HttpResponse::Created().json(ShortUrlResponse {
             short_url: ids::encode_id(id),
@@ -59,6 +64,7 @@ async fn main() -> std::io::Result<()> {
         .unwrap_or(7777);
     let repo: UrlRepo = UrlRepo::new().await.expect("Error creating UrlRepo!");
     println!("Running server on port {port}...");
+
     HttpServer::new(move || {
         App::new()
             .wrap(Cors::permissive())
