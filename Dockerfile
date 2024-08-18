@@ -5,7 +5,7 @@ COPY src src
 COPY Cargo.lock Cargo.lock
 COPY Cargo.toml Cargo.toml
 COPY migrations migrations
-COPY sqlx-data.json sqlx-data.json
+COPY .sqlx .sqlx
 
 ENV SQLX_OFFLINE true
 
