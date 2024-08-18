@@ -1,25 +1,30 @@
-use sqlx::postgres::PgPoolOptions;
-use sqlx::PgPool;
+use sqlx::migrate::MigrateDatabase;
+use sqlx::{Sqlite, SqlitePool};
 
 #[derive(Clone, Debug)]
 pub struct UrlRepo {
-    db_pool: PgPool,
+    db_pool: SqlitePool,
 }
 
 impl UrlRepo {
     pub async fn new() -> Option<UrlRepo> {
         let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL env var is missing!");
-        let pool = PgPoolOptions::new()
-            .max_connections(5)
-            .connect(&db_url)
-            .await
-            .ok()?;
+        if Sqlite::database_exists(&db_url).await.unwrap_or(false) {
+            println!("DB is already created, skipping...")
+        } else {
+            println!("Creating database {}...", &db_url);
+            match Sqlite::create_database(&db_url).await {
+                Ok(_) => println!("DB created!"),
+                Err(error) => panic!("error: {}", error),
+            }
+        }
+        let pool = SqlitePool::connect(&db_url).await.ok()?;
         sqlx::migrate!().run(&pool).await.ok()?;
         Some(UrlRepo { db_pool: pool })
     }
 
     pub async fn find(&self, key: u32) -> Option<String> {
-        match sqlx::query!("SELECT * FROM urls WHERE id = $1", key as i32)
+        match sqlx::query!("SELECT * FROM urls WHERE id = $1", key)
             .fetch_one(&self.db_pool)
             .await
         {

@@ -1,5 +1,5 @@
 -- create urls table
 CREATE TABLE urls(
-    id SERIAL PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     url TEXT NOT NULL
-);
+) STRICT;
